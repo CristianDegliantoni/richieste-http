@@ -1,0 +1,239 @@
+Richieste HTTP con JavaScript
+Web 2.0, metodi HTTP, header, status code e la funzione fetch().
+
+Capitolo 1
+
+Web 2.0 e le richieste HTTP
+Con Web 2.0 intendiamo la capacità delle pagine web di chiedere informazioni a un server mentre l'utente è sulla pagina, senza ricaricarla tutta. Grazie a questo esistono le applicazioni web interattive di oggi.
+
+Nel web delle origini, per aggiornare un contenuto serviva caricare di nuovo tutta la pagina dal server. Con il Web 2.0 la pagina resta aperta. Quando servono nuovi dati, li chiede al server in background, riceve solo ciò che serve e aggiorna solo la parte che cambia.
+
+Questa comunicazione si chiama richiesta HTTP asincrona. HTTP è il protocollo (l'insieme di regole) con cui browser e server si scambiano messaggi. Asincrona significa che il browser invia la richiesta e non si blocca ad aspettare: continua a funzionare, e quando la risposta arriva la elabora.
+
+Il primo strumento per farlo era XMLHttpRequest (abbreviato XHR), nato con Microsoft nei primi anni 2000 e poi adottato da tutti i browser. Era potente ma complicato: servivano molte righe di codice anche per cose semplici.
+
+Nel 2015, con ES6 (una versione di JavaScript), è arrivata la Fetch API, un'interfaccia moderna e molto più semplice. fetch() ha sostituito XMLHttpRequest nella maggior parte dei progetti e il codice è più pulito.
+
+Esempio
+La stessa richiesta scritta prima con XMLHttpRequest e poi con fetch():
+
+// Con XMLHttpRequest
+const xhr = new XMLHttpRequest();
+xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts/1');
+xhr.onload = () => {
+    if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        console.log(data.title);
+    }
+};
+xhr.send();
+
+// Con fetch()
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+    .then(response => response.json())
+    .then(data => console.log(data.title));
+Capitolo 2
+
+Osservare le richieste con i DevTools
+I DevTools (strumenti per sviluppatori) del browser mostrano in tempo reale tutte le richieste HTTP fatte dalla pagina. Si aprono con F12 oppure con il tasto destro sulla pagina e Ispeziona.
+
+Ogni browser moderno include i DevTools, accessibili tramite F12 o con la combinazione Ctrl + Shift + I (su Windows e Linux) oppure Cmd + Option + I (su macOS). Una volta aperti, scegli la scheda Rete (in italiano) o Network (in inglese).
+
+La scheda elenca tutte le richieste fatte dalla pagina, mentre si carica o mentre l'utente la usa. Per ogni richiesta vedi: l'URL, il metodo HTTP, il codice di stato ricevuto, la dimensione della risposta e il tempo impiegato.
+
+Per vedere solo le richieste alle API, senza immagini, CSS, font e script, usa il filtro Fetch/XHR nella barra dei filtri. Restano solo le richieste asincrone fatte con fetch() o con XMLHttpRequest.
+
+Se clicchi su una richiesta si apre un pannello con quattro sezioni utili per cercare gli errori (debug):
+
+Headers — mostra gli header della richiesta e della risposta, il metodo e il codice di stato
+Preview — mostra il corpo della risposta formattato (ad esempio come albero JSON)
+Response — mostra il corpo della risposta come testo grezzo
+Timing — mostra quanto tempo ha impiegato ogni fase della richiesta
+Capitolo 3
+
+HTTP Status Code
+Il server risponde sempre a una richiesta HTTP. Insieme ai dati (o senza), invia un codice di stato: un numero che dice com'è andata.
+
+Il client (per noi, il browser) invia una richiesta e il server risponde sempre. La risposta contiene un codice di stato (status code): un numero a tre cifre che dice se è andato tutto bene oppure se c'è stato un errore, e quale. Conoscere questi codici ti aiuta a capire cosa succede tra client e server.
+
+I codici sono divisi in cinque categorie, una per centinaio. La prima cifra indica la categoria. Le altre due indicano il tipo preciso di risposta.
+
+Categoria	Significato generale	Codici comuni	Descrizione
+1xx	Informazionale	100 Continue	Il server ha ricevuto la richiesta, elaborazione in corso
+2xx	Successo	200 OK	Richiesta riuscita, i dati sono nella risposta
+201 Created	Risorsa creata con successo (tipico di POST)
+204 No Content	Richiesta riuscita, ma la risposta non contiene dati (tipico di DELETE)
+3xx	Reindirizzamento	301 Moved Permanently	La risorsa si trova ora a un altro URL in modo permanente
+302 Found	La risorsa si trova temporaneamente a un altro URL
+4xx	Errore del client	400 Bad Request	La richiesta è malformata o contiene dati non validi
+401 Unauthorized	Autenticazione richiesta: l'utente non è riconosciuto
+403 Forbidden	Accesso vietato: l'utente è riconosciuto ma non ha i permessi
+404 Not Found	La risorsa richiesta non esiste a quell'URL
+5xx	Errore del server	500 Internal Server Error	Errore generico lato server durante l'elaborazione
+503 Service Unavailable	Il server non è disponibile, ad esempio per manutenzione
+Capitolo 4
+
+Metodi HTTP
+Il metodo HTTP dice al server quale operazione il client vuole fare sulla risorsa indicata dall'URL. I metodi principali sono GET, POST, PUT, PATCH e DELETE.
+
+Una richiesta HTTP ha un URL (l'indirizzo della risorsa) e un metodo (cosa vuole fare il client). Pensa all'URL come all'indirizzo di un oggetto e al metodo come all'azione su quell'oggetto: leggerlo, crearne uno nuovo, modificarlo o eliminarlo.
+
+Metodo	Operazione	Usa il body?	Status tipico
+GET	Legge una risorsa	No	200 OK
+POST	Crea una nuova risorsa	Sì	201 Created
+PUT	Sostituisce completamente una risorsa	Sì	200 OK
+PATCH	Modifica parzialmente una risorsa	Sì	200 OK
+DELETE	Elimina una risorsa	No	204 No Content
+Capitolo 5
+
+La funzione fetch()
+fetch() è la funzione JavaScript che invia richieste HTTP. Come primo argomento riceve l'URL della risorsa. Restituisce una Promise ("promessa"): un valore che non è subito disponibile ma arriverà in futuro.
+
+Una Promise rappresenta un'operazione asincrona. Quando la risposta del server arriva, la Promise si "risolve" e il risultato passa alla funzione scritta dentro .then(). Puoi mettere più .then() uno dopo l'altro: il primo riceve la risposta HTTP grezza, il secondo riceve i dati veri dopo la trasformazione.
+
+Esempio
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+    .then(response => response.json())
+    .then(data => console.log(data));
+    
+Esercizio
+Usa fetch() per richiedere i dati del post con id 5 da https://jsonplaceholder.typicode.com/posts/5 e stampa in console l'intero oggetto ricevuto.
+
+
+Capitolo 6
+
+Il primo .then(): l'oggetto response
+Il primo .then() riceve un oggetto response, cioè la risposta HTTP grezza del server. Non contiene ancora i dati veri. Contiene le informazioni sulla risposta (status, header) e i metodi per leggere il corpo.
+
+Quando la Promise di fetch() si risolve, passa al primo .then() un oggetto Response. Descrive la risposta prima di leggerne il contenuto. È come una busta ancora chiusa: non vedi la lettera, ma vedi già il mittente e il timbro postale.
+
+Le proprietà più importanti di response sono:
+
+response.status — il codice di stato numerico (es. 200, 404)
+response.statusText — il messaggio testuale associato (es. "OK", "Not Found")
+response.ok — un booleano: vale true se lo status è tra 200 e 299, false altrimenti
+response.headers — l'oggetto che contiene gli header della risposta, leggibili con .get('nome-header')
+Per leggere il corpo della risposta usi i metodi asincroni di response. Ognuno restituisce a sua volta una Promise, quindi scrivi return davanti, dentro il .then(), per passare il risultato al .then() successivo:
+
+response.json() — analizza il corpo come JSON e lo trasforma in un oggetto JavaScript
+response.text() — legge il corpo come testo semplice
+response.blob() — legge il corpo come dato binario (utile per immagini o file)
+Quale metodo usare dipende dal formato della risposta del server. Con quasi tutte le API moderne si usa response.json().
+
+Esempio
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+    .then(response => {
+        console.log(response.status);       // 200
+        console.log(response.statusText);   // "OK"
+        console.log(response.ok);           // true
+
+        const tipo = response.headers.get('Content-Type');
+        console.log(tipo);                  // "application/json; charset=utf-8"
+
+        return response.json();
+    })
+    .then(data => console.log(data));
+Esercizio
+Fai una richiesta a https://jsonplaceholder.typicode.com/posts/1 e nel primo .then() stampa in console: il codice di stato, il valore di response.ok e il valore dell'header Content-Type della risposta. Poi restituisci i dati come JSON per il secondo .then().
+
+
+Capitolo 7
+
+Il secondo .then(): i dati
+Il secondo .then() riceve il risultato del metodo chiamato nel primo. Se hai usato response.json(), riceve un oggetto JavaScript pronto da usare.
+
+Il secondo .then() è il punto in cui lavori con i dati veri. Il corpo della risposta è già stato letto e trasformato. Se nel primo .then() hai chiamato response.json(), il parametro del secondo è un oggetto JavaScript con tutte le proprietà del JSON ricevuto.
+
+Da qui usi il parametro come un qualsiasi oggetto: leggi le proprietà, le stampi in console, le mostri nella pagina o le salvi in una variabile.
+
+Esempio
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.id);       // 1
+        console.log(data.title);    // "sunt aut facere..."
+        console.log(data.body);     // testo del post
+        console.log(data.userId);   // 1
+    });
+Esercizio
+Fai una richiesta a https://jsonplaceholder.typicode.com/users/1 e nel secondo .then() stampa in console il nome, l'email e il nome della città dell'utente (data.address.city).
+
+
+Capitolo 8
+
+Usare i metodi HTTP con fetch()
+Con fetch() il metodo predefinito è GET. Per usarne un altro passi un secondo argomento: un oggetto di configurazione con la proprietà method e, se serve, body.
+
+L'oggetto di configurazione ha tre proprietà principali:
+
+method: il metodo HTTP;
+body: i dati da inviare al server (obbligatorio per POST, PUT e PATCH);
+headers: gli header della richiesta.
+Il body deve essere una stringa. Per inviare un oggetto JavaScript, convertilo con JSON.stringify().
+
+Esempio
+// POST — crea una nuova risorsa
+fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    body: JSON.stringify({ title: 'Nuovo post', userId: 1 }),
+    headers: { 'Content-Type': 'application/json' }
+})
+    .then(response => response.json())
+    .then(data => console.log(data));
+
+// PATCH — modifica solo il titolo
+fetch('https://jsonplaceholder.typicode.com/posts/1', {
+    method: 'PATCH',
+    body: JSON.stringify({ title: 'Titolo aggiornato' }),
+    headers: { 'Content-Type': 'application/json' }
+})
+    .then(response => response.json())
+    .then(data => console.log(data));
+
+// DELETE — elimina la risorsa
+fetch('https://jsonplaceholder.typicode.com/posts/1', {
+    method: 'DELETE'
+})
+    .then(response => console.log('Status: ' + response.status));
+Esercizio
+Invia una richiesta POST a https://jsonplaceholder.typicode.com/posts con le proprietà title, body e userId. Nel secondo .then() stampa in console l'id della risorsa creata.
+
+
+Capitolo 9
+
+Header HTTP
+Gli header sono informazioni in più che viaggiano con la richiesta o con la risposta HTTP. Non sono il corpo del messaggio: spiegano come leggerlo.
+
+Immagina la richiesta HTTP come una busta. Il body è la lettera dentro. Gli header sono le informazioni scritte sulla busta (mittente, tipo di contenuto, lingua, ecc.). Il server legge gli header prima di aprire la busta, per sapere come gestire il contenuto.
+
+Gli header sono coppie chiave-valore. Con fetch() li imposti con la proprietà headers dell'oggetto di configurazione. L'header più comune nelle richieste è Content-Type: dice al server in quale formato sono i dati del body. Per i dati JSON il valore è application/json. Gli header della risposta si leggono con response.headers.get('nome-header').
+
+Header	Direzione	Scopo	Esempio di valore
+Content-Type	Richiesta e risposta	Specifica il formato dei dati nel body	application/json
+Authorization	Richiesta	Trasmette credenziali di autenticazione	Bearer il-mio-token
+Accept	Richiesta	Indica al server il formato di risposta atteso	application/json
+Cache-Control	Richiesta e risposta	Controlla il comportamento della cache	no-cache
+
+Esempio
+fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    body: JSON.stringify({ title: 'Test', userId: 1 }),
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer il-mio-token'
+    }
+})
+    .then(response => {
+        const contentType = response.headers.get('Content-Type');
+        console.log('Tipo di risposta: ' + contentType);
+        return response.json();
+    })
+    .then(data => console.log(data));
+
+Esercizio
+Invia una richiesta POST con l'header Content-Type: application/json e un body con title e userId. Nel primo .then() leggi e stampa il valore dell'header Content-Type della risposta, poi restituisci i dati come JSON. Nel secondo .then() stampa il titolo del post creato.
+
+
+Esercizio finale
+Invia una richiesta POST a https://jsonplaceholder.typicode.com/posts con le proprietà title, body e userId, impostando l'header Content-Type: application/json. Nel primo .then() stampa il codice di stato e il valore di response.ok, poi restituisci i dati come JSON. Nel secondo .then() stampa il messaggio 'Risorsa creata con id: ' seguito dall'id restituito dal server.
+
